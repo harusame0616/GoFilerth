@@ -1,0 +1,8 @@
+version: "3.7"
+
+services:
+  app:
+    image: golang:1.19.2-bullseye
+    volumes:
+      - ./:/gofilerth
+    tty: true
