@@ -1,0 +1,2 @@
+# GoFilerth
+Go製TUIファイラー
