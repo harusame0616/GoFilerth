@@ -10,11 +10,11 @@ type FileQueryInterface interface {
 }
 
 type FileDto struct {
-	Name        string
-	Path        string
-	Size        int64
-	ModifiedAt  time.Time
-	IsDirectory bool
+	Name       string
+	Path       string
+	Size       int64
+	ModifiedAt time.Time
+	FileType   string
 }
 
 type FileQueryUsecase struct {

@@ -63,11 +63,18 @@ func (fileQuery *FileQuery) ListFiles(path string) ([]usecase.FileDto, error) {
 		if len(attrs.Prefix) > 0 {
 			paths := strings.Split(attrs.Prefix, "/")
 			file.Name = paths[len(paths)-2] // 最後が空白要素になるので -2
-			file.IsDirectory = true
+			file.FileType = "_directory"
 		} else if len(attrs.Name) > 0 {
 			paths := strings.Split(attrs.Name, "/")
 			file.Name = paths[len(paths)-1]
-			file.IsDirectory = false
+			file.FileType = ""
+			splits := strings.Split(file.Name, ".")
+			if len(splits) <= 1 {
+				file.FileType = ""
+			} else {
+				file.FileType = splits[len(splits)-1]
+			}
+
 		}
 
 		files = append(files, file)
