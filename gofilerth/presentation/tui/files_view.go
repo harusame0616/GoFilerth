@@ -6,6 +6,7 @@ import (
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/harusame0616/GoFilerth/gofilerth/infrastructure/local"
+	"github.com/harusame0616/GoFilerth/gofilerth/presentation/setting"
 	"github.com/harusame0616/GoFilerth/gofilerth/usecase"
 	"github.com/rivo/tview"
 )
@@ -96,7 +97,13 @@ func (fv *filesView) updateTable(files []usecase.FileDto) {
 		fileNameCell := tview.NewTableCell(file.Name)
 		fileNameCell.SetExpansion(1)
 		fv.table.SetCell(row, 0, fileNameCell)
+		if color, err := setting.GetColor(file); err == nil {
+			fileNameCell.SetTextColor(tcell.NewHexColor(color))
+		} else {
+			log.Fatal(err)
+		}
 	}
+
 	fv.table.ScrollToBeginning()
 }
 
