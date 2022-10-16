@@ -8,17 +8,23 @@ import (
 	"github.com/harusame0616/GoFilerth/gofilerth/domain/filer"
 )
 
+type CommandGateway interface {
+	OpenShell(workDir string)
+}
+
 type FilerCommand struct {
 	fileRepository    file.Repository
 	filerRepository   filer.Repository
 	fileDomainService *filer.DomainService
+	commandGateway    CommandGateway
 }
 
-func NewFilerCommand(fileRepository file.Repository, filerRepository filer.Repository) *FilerCommand {
+func NewFilerCommand(fileRepository file.Repository, filerRepository filer.Repository, commandGateway CommandGateway) *FilerCommand {
 	return &FilerCommand{
 		fileRepository:    fileRepository,
 		filerRepository:   filerRepository,
 		fileDomainService: filer.NewDomainService(fileRepository),
+		commandGateway:    commandGateway,
 	}
 }
 
@@ -73,4 +79,13 @@ func (filerCommand *FilerCommand) CurrentPath(id string) string {
 	}
 
 	return filer.CurrentPath()
+}
+
+func (filerCommand *FilerCommand) OpenShell(id string) {
+	filer, err := filerCommand.filerRepository.GetOneById(id)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	filerCommand.commandGateway.OpenShell(filer.CurrentPath())
 }

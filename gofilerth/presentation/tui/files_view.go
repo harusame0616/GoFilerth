@@ -2,12 +2,11 @@ package tui
 
 import (
 	"log"
-	"os"
-	"os/exec"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/harusame0616/GoFilerth/gofilerth/infrastructure/inmemory"
 	"github.com/harusame0616/GoFilerth/gofilerth/infrastructure/local"
+	"github.com/harusame0616/GoFilerth/gofilerth/infrastructure/shell"
 	"github.com/harusame0616/GoFilerth/gofilerth/presentation/setting"
 	"github.com/harusame0616/GoFilerth/gofilerth/usecase"
 	"github.com/rivo/tview"
@@ -16,6 +15,7 @@ import (
 type pathChangeObserver func(newPath string)
 
 type filesView struct {
+	app          *tview.Application
 	table        *tview.Table
 	fileQuery    *usecase.FileQueryUsecase
 	filerUsecase *usecase.FilerCommand
@@ -26,8 +26,8 @@ type filesView struct {
 
 // ファイル一覧ビューを作成する
 // path : 初期表示パス
-func NewFilesView(path string) *filesView {
-	fv := &filesView{}
+func NewFilesView(path string, app *tview.Application) *filesView {
+	fv := &filesView{app: app}
 
 	if fileQuery, err := usecase.NewFileQuery(local.NewFileQuery()); err == nil {
 		fv.fileQuery = fileQuery
@@ -35,7 +35,7 @@ func NewFilesView(path string) *filesView {
 		log.Fatal(err)
 	}
 
-	fv.filerUsecase = usecase.NewFilerCommand(local.NewFileRepository(), inmemory.NewFilerRepository())
+	fv.filerUsecase = usecase.NewFilerCommand(local.NewFileRepository(), inmemory.NewFilerRepository(), shell.NewCommandGateway())
 
 	fv.table = tview.NewTable()
 	fv.table.SetSelectable(true, false)
@@ -58,6 +58,9 @@ func NewFilesView(path string) *filesView {
 				return nil
 			case 'O':
 				fv.upDirectory()
+				return nil
+			case 'S':
+				fv.openShell()
 				return nil
 			}
 		}
@@ -120,18 +123,11 @@ func (fv *filesView) updatePath(path string) {
 	fv.table.ScrollToBeginning()
 	fv.table.Select(0, 0)
 }
-func (fv *filesView) CurrentPath() string {
-	return fv.filerUsecase.CurrentPath(fv.filerId)
-}
 
-func (fv *filesView) OpenShell() {
-	defaultShell := os.Getenv("SHELL")
-	shell := exec.Command(defaultShell)
-	shell.Stdin = os.Stdin
-	shell.Stdout = os.Stdout
-	shell.Stderr = os.Stderr
-	shell.Dir = fv.filerUsecase.CurrentPath(fv.filerId)
-	shell.Run()
+func (fv *filesView) openShell() {
+	fv.app.Suspend(func() {
+		fv.filerUsecase.OpenShell(fv.filerId)
+	})
 }
 
 // currentPathが変更されたときに実行されるオブザーバーを登録する

@@ -22,6 +22,14 @@ func (fileRepository *fileRepositoryMock) GetOneByPath(destinationPath string) (
 	}
 }
 
+type commandGatewayMock struct {
+	workDir string
+}
+
+func (commandGateway *commandGatewayMock) OpenShell(workDir string) {
+	commandGateway.workDir = workDir
+}
+
 func TestCreateNewFiler(t *testing.T) {
 
 	fileRepository := &fileRepositoryMock{files: map[string]file.Dto{
@@ -30,7 +38,7 @@ func TestCreateNewFiler(t *testing.T) {
 		"/dir_nest/dir_nest": {Path: "/dir_nest/dir_nest", IsDirectory: true},
 		"/dir_nest/file":     {Path: "/dir_nest/file", IsDirectory: false},
 	}}
-	filerCommand := NewFilerCommand(fileRepository, inmemory.NewFilerRepository())
+	filerCommand := NewFilerCommand(fileRepository, inmemory.NewFilerRepository(), &commandGatewayMock{})
 
 	t.Run("正常系", func(t *testing.T) {
 		for _, path := range []string{"/", "/dir1", "/dir_nest/dir_nest"} {
@@ -82,7 +90,7 @@ func TestChangeDirectory(t *testing.T) {
 		"/dir_nest/dir_nest": {Path: "/dir_nest/dir_nest", IsDirectory: true},
 		"/dir_nest/file":     {Path: "/dir_nest/file", IsDirectory: false},
 	}}
-	filerCommand := NewFilerCommand(fileRepository, inmemory.NewFilerRepository())
+	filerCommand := NewFilerCommand(fileRepository, inmemory.NewFilerRepository(), &commandGatewayMock{})
 	id, err := filerCommand.CreateNewFiler("/")
 	if err != nil {
 		t.Errorf("prepare error")
@@ -131,7 +139,7 @@ func TestUpDirectory(t *testing.T) {
 		"/dir1/dir1": {Path: "/dir2", IsDirectory: true},
 		"/dir2/dir2": {Path: "/dir2/dir2", IsDirectory: true},
 	}}
-	filerCommand := NewFilerCommand(fileRepository, inmemory.NewFilerRepository())
+	filerCommand := NewFilerCommand(fileRepository, inmemory.NewFilerRepository(), &commandGatewayMock{})
 
 	t.Run("正常系", func(t *testing.T) {
 		for _, testParam := range [][]string{{"/dir1", "/"}, {"/dir1/dir1", "/dir1"}} {
@@ -175,5 +183,28 @@ func TestUpDirectory(t *testing.T) {
 			}
 		})
 
+	})
+}
+
+func TestOpenShell(t *testing.T) {
+	fileRepository := &fileRepositoryMock{files: map[string]file.Dto{
+		"/dir1": {Path: "/dir1", IsDirectory: true},
+	}}
+
+	t.Run("正常系", func(t *testing.T) {
+		t.Run("カレントディレクトリでシェルが開ける", func(t *testing.T) {
+			testPath := "/dir1"
+			commandGateway := &commandGatewayMock{}
+			filerCommand := NewFilerCommand(fileRepository, inmemory.NewFilerRepository(), commandGateway)
+			id, err := filerCommand.CreateNewFiler(testPath)
+			if err != nil {
+				t.Errorf("err == %v; want err == nil", err)
+			}
+
+			filerCommand.OpenShell(id)
+			if commandGateway.workDir != testPath {
+				t.Errorf("workDir = %s; want workDir == %s", commandGateway.workDir, testPath)
+			}
+		})
 	})
 }

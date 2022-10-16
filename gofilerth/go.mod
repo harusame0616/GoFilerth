@@ -6,6 +6,7 @@ require (
 	cloud.google.com/go/storage v1.27.0
 	github.com/BurntSushi/toml v0.3.1
 	github.com/gdamore/tcell/v2 v2.4.1-0.20210905002822-f057f0a857a1
+	github.com/google/uuid v1.3.0
 	github.com/rivo/tview v0.0.0-20220916081518-2e69b7385a37
 	google.golang.org/api v0.98.0
 )
@@ -18,7 +19,6 @@ require (
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/go-cmp v0.5.8 // indirect
-	github.com/google/uuid v1.3.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.1.0 // indirect
 	github.com/googleapis/gax-go/v2 v2.5.1 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
