@@ -18,7 +18,6 @@ type filesView struct {
 	fileQuery    *usecase.FileQueryUsecase
 	filerUsecase *usecase.FilerCommand
 	filerId      string
-	currentPath  string
 	pathChangeObserver
 	files []usecase.FileDto
 }
@@ -118,6 +117,9 @@ func (fv *filesView) updatePath(path string) {
 
 	fv.table.ScrollToBeginning()
 	fv.table.Select(0, 0)
+}
+func (fv *filesView) CurrentPath() string {
+	return fv.filerUsecase.CurrentPath(fv.filerId)
 }
 
 // currentPathが変更されたときに実行されるオブザーバーを登録する

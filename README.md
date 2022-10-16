@@ -9,3 +9,9 @@
 
 
 <font color="red">this is in the process of making.</font>
+
+# Key Binding
+
+| KEY | DESCRIBE                                     |
+| --- | -------------------------------------------- |
+| S   | Open a shell in the focused pane's directory |
