@@ -2,6 +2,7 @@ package local
 
 import (
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/harusame0616/GoFilerth/gofilerth/usecase"
@@ -30,6 +31,7 @@ func (fileQuery *FileQuery) ListFiles(path string) ([]usecase.FileDto, error) {
 
 		fileDtoList[index].Name = fileInfo.Name()
 		fileDtoList[index].Path = path
+		fileDtoList[index].FullPath = filepath.Join(path, fileInfo.Name())
 		fileDtoList[index].Size = fileInfo.Size()
 		fileDtoList[index].ModifiedAt = fileInfo.ModTime()
 

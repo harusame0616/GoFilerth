@@ -2,9 +2,9 @@ package tui
 
 import (
 	"log"
-	"strings"
 
 	"github.com/gdamore/tcell/v2"
+	"github.com/harusame0616/GoFilerth/gofilerth/infrastructure/inmemory"
 	"github.com/harusame0616/GoFilerth/gofilerth/infrastructure/local"
 	"github.com/harusame0616/GoFilerth/gofilerth/presentation/setting"
 	"github.com/harusame0616/GoFilerth/gofilerth/usecase"
@@ -14,41 +14,46 @@ import (
 type pathChangeObserver func(newPath string)
 
 type filesView struct {
-	table       *tview.Table
-	fileQuery   *usecase.FileQueryUsecase
-	currentPath string
+	table        *tview.Table
+	fileQuery    *usecase.FileQueryUsecase
+	filerUsecase *usecase.FilerCommand
+	filerId      string
+	currentPath  string
 	pathChangeObserver
+	files []usecase.FileDto
 }
 
 // ファイル一覧ビューを作成する
 // path : 初期表示パス
 func NewFilesView(path string) *filesView {
-	fileQuery, err := usecase.NewFileQuery(local.NewFileQuery())
-	if err != nil {
+	fv := &filesView{}
+
+	if fileQuery, err := usecase.NewFileQuery(local.NewFileQuery()); err == nil {
+		fv.fileQuery = fileQuery
+	} else {
 		log.Fatal(err)
 	}
 
-	table := tview.NewTable()
-	table.SetSelectable(true, false)
+	fv.filerUsecase = usecase.NewFilerCommand(local.NewFileRepository(), inmemory.NewFilerRepository())
+
+	fv.table = tview.NewTable()
+	fv.table.SetSelectable(true, false)
 
 	// 初期パス表示
-	fv := &filesView{table: table, fileQuery: fileQuery}
-	fv.open(path)
+	if filerId, err := fv.filerUsecase.CreateNewFiler(path); err == nil {
+		fv.filerId = filerId
+	} else {
+		log.Fatal(err)
+	}
+	fv.openPath(path)
 
-	table.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+	fv.table.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		switch event.Key() {
 		case tcell.KeyRune:
 			switch event.Rune() {
 			case 'o':
-				row, _ := table.GetSelection()
-				selectedCell := table.GetCell(row, 0)
-				path := fv.currentPath
-				if !strings.HasSuffix(path, "/") {
-					path += "/"
-				}
-
-				fv.open(path + selectedCell.Text)
-
+				row, _ := fv.table.GetSelection()
+				fv.openByIndex(row)
 				return nil
 			case 'O':
 				fv.upDirectory()
@@ -63,37 +68,44 @@ func NewFilesView(path string) *filesView {
 }
 
 // パスを開く
-func (fv *filesView) open(path string) error {
-	files, err := fv.fileQuery.ListFiles(path)
-	if err != nil {
-		return err
+func (fv *filesView) openPath(path string) error {
+	if err := fv.filerUsecase.ChangeDirectory(fv.filerId, path); err != nil {
+		log.Fatal(err)
 	}
 
-	fv.currentPath = path
-	fv.updateTable(files)
-	if fv.pathChangeObserver != nil {
-		fv.pathChangeObserver(path)
-	}
+	fv.updatePath(path)
 
 	return nil
 }
 
+func (fv *filesView) openByIndex(index int) {
+	fv.openPath(fv.files[index].FullPath)
+}
+
 // カレントパスから一階層上に上がる
 func (fv *filesView) upDirectory() error {
-	paths := strings.Split(fv.currentPath, "/")
-
-	upperPath := strings.Join(paths[0:len(paths)-1], "/")
-	if upperPath == "" {
-		upperPath = "/"
+	if path, err := fv.filerUsecase.UpDirectory(fv.filerId); err == nil {
+		fv.updatePath(path)
+		return nil
+	} else {
+		return err
 	}
-
-	return fv.open(upperPath)
 }
 
 // テーブルを更新する
-func (fv *filesView) updateTable(files []usecase.FileDto) {
+func (fv *filesView) updatePath(path string) {
+	if files, err := fv.fileQuery.ListFiles(path); err == nil {
+		fv.files = files
+	} else {
+		log.Fatal(err)
+	}
+
+	if fv.pathChangeObserver != nil {
+		fv.pathChangeObserver(path)
+	}
+
 	fv.table.Clear()
-	for row, file := range files {
+	for row, file := range fv.files {
 		fileNameCell := tview.NewTableCell(file.Name)
 		fileNameCell.SetExpansion(1)
 		fv.table.SetCell(row, 0, fileNameCell)
@@ -105,6 +117,7 @@ func (fv *filesView) updateTable(files []usecase.FileDto) {
 	}
 
 	fv.table.ScrollToBeginning()
+	fv.table.Select(0, 0)
 }
 
 // currentPathが変更されたときに実行されるオブザーバーを登録する
