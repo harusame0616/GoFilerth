@@ -62,6 +62,9 @@ func NewFilesView(path string, app *tview.Application) *filesView {
 			case 'S':
 				fv.openShell()
 				return nil
+			case 'e':
+				fv.openEditor()
+				return nil
 			}
 		}
 
@@ -69,6 +72,11 @@ func NewFilesView(path string, app *tview.Application) *filesView {
 	})
 
 	return fv
+}
+
+func (fv *filesView) selectedFile() usecase.FileDto {
+	row, _ := fv.table.GetSelection()
+	return fv.files[row]
 }
 
 // パスを開く
@@ -127,6 +135,12 @@ func (fv *filesView) updatePath(path string) {
 func (fv *filesView) openShell() {
 	fv.app.Suspend(func() {
 		fv.filerUsecase.OpenShell(fv.filerId)
+	})
+}
+
+func (fv *filesView) openEditor() {
+	fv.app.Suspend(func() {
+		fv.filerUsecase.OpenEditor(fv.filerId, fv.selectedFile().FullPath)
 	})
 }
 
