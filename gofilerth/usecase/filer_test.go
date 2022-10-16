@@ -24,10 +24,16 @@ func (fileRepository *fileRepositoryMock) GetOneByPath(destinationPath string) (
 
 type commandGatewayMock struct {
 	workDir string
+	path    string
 }
 
 func (commandGateway *commandGatewayMock) OpenShell(workDir string) {
 	commandGateway.workDir = workDir
+}
+
+func (commandGateway *commandGatewayMock) OpenEditor(path string) error {
+	commandGateway.path = path
+	return nil
 }
 
 func TestCreateNewFiler(t *testing.T) {

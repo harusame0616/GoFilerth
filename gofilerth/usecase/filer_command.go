@@ -10,6 +10,7 @@ import (
 
 type CommandGateway interface {
 	OpenShell(workDir string)
+	OpenEditor(path string) error
 }
 
 type FilerCommand struct {
@@ -88,4 +89,8 @@ func (filerCommand *FilerCommand) OpenShell(id string) {
 	}
 
 	filerCommand.commandGateway.OpenShell(filer.CurrentPath())
+}
+
+func (filerCommand *FilerCommand) OpenEditor(id string, path string) {
+	filerCommand.commandGateway.OpenEditor(path)
 }
