@@ -125,7 +125,8 @@ func (fv *filesView) CurrentPath() string {
 }
 
 func (fv *filesView) OpenShell() {
-	shell := exec.Command("bash")
+	defaultShell := os.Getenv("SHELL")
+	shell := exec.Command(defaultShell)
 	shell.Stdin = os.Stdin
 	shell.Stdout = os.Stdout
 	shell.Stderr = os.Stderr
