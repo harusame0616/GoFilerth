@@ -1,0 +1,20 @@
+[_directory]
+color = "#38b48b"
+
+[png]
+color = "#e6b422"
+
+[jpg]
+color = "#e6b422"
+
+[jpeg]
+color = "#e6b422"
+
+[gif]
+color = "#e6b422"
+
+[md]
+color = "#0000ff"
+
+[yml]
+color = "#0000ff"

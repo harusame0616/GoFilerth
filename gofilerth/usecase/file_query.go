@@ -12,6 +12,7 @@ type FileQueryInterface interface {
 type FileDto struct {
 	Name       string
 	Path       string
+	FullPath   string
 	Size       int64
 	ModifiedAt time.Time
 	FileType   string

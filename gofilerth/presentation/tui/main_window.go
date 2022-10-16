@@ -50,10 +50,6 @@ func NewMainWindow() *mainWindow {
 	window.app.SetInputCapture(
 		func(event *tcell.EventKey) *tcell.EventKey {
 			switch event.Key() {
-			case tcell.KeyCtrlJ:
-				// CtrlFを押した時の処理を記述
-				return event // CtrlFをInputFieldのdefaultのキー設定へ伝える
-
 			case tcell.KeyRune:
 				switch event.Rune() {
 				case 'h':
