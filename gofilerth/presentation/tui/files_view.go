@@ -2,6 +2,8 @@ package tui
 
 import (
 	"log"
+	"os"
+	"os/exec"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/harusame0616/GoFilerth/gofilerth/infrastructure/inmemory"
@@ -120,6 +122,15 @@ func (fv *filesView) updatePath(path string) {
 }
 func (fv *filesView) CurrentPath() string {
 	return fv.filerUsecase.CurrentPath(fv.filerId)
+}
+
+func (fv *filesView) OpenShell() {
+	shell := exec.Command("bash")
+	shell.Stdin = os.Stdin
+	shell.Stdout = os.Stdout
+	shell.Stderr = os.Stderr
+	shell.Dir = fv.filerUsecase.CurrentPath(fv.filerId)
+	shell.Run()
 }
 
 // currentPathが変更されたときに実行されるオブザーバーを登録する

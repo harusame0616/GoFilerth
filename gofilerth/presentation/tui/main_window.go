@@ -1,9 +1,6 @@
 package tui
 
 import (
-	"os"
-	"os/exec"
-
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
@@ -87,16 +84,10 @@ func (window *mainWindow) Run() {
 
 func (window *mainWindow) openShell() {
 	window.app.Suspend(func() {
-		shell := exec.Command("bash")
-		shell.Stdin = os.Stdin
-		shell.Stdout = os.Stdout
-		shell.Stderr = os.Stderr
-
 		if window.focusArea == FOCUS_LEFT_PANE {
-			shell.Dir = window.leftPane.CurrentPath()
+			window.leftPane.OpenShell()
 		} else {
-			shell.Dir = window.rightPane.CurrentPath()
+			window.rightPane.OpenShell()
 		}
-		shell.Run()
 	})
 }
