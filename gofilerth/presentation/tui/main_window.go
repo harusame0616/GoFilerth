@@ -5,20 +5,15 @@ import (
 	"github.com/rivo/tview"
 )
 
-const (
-	FOCUS_LEFT_PANE  = 1
-	FOCUS_RIGHT_PANE = 2
-)
-
 type mainWindow struct {
 	app       *tview.Application
 	leftPane  *filesView
 	rightPane *filesView
-	focusArea int
 }
 
 func NewMainWindow() *mainWindow {
-	window := &mainWindow{app: tview.NewApplication(), leftPane: NewFilesView("/"), rightPane: NewFilesView("/")}
+	app := tview.NewApplication()
+	window := &mainWindow{app: app, leftPane: NewFilesView("/", app), rightPane: NewFilesView("/", app)}
 
 	// ファイル一覧横２画面
 	fileListViews := tview.NewFlex()
@@ -52,7 +47,6 @@ func NewMainWindow() *mainWindow {
 
 	window.app.SetRoot(root, true).EnableMouse(true)
 	window.app.SetFocus(window.leftPane.table)
-	window.focusArea = FOCUS_LEFT_PANE
 
 	window.app.SetInputCapture(
 		func(event *tcell.EventKey) *tcell.EventKey {
@@ -61,12 +55,8 @@ func NewMainWindow() *mainWindow {
 				switch event.Rune() {
 				case 'h':
 					window.app.SetFocus(window.leftPane.table)
-					window.focusArea = FOCUS_LEFT_PANE
 				case 'l':
 					window.app.SetFocus(window.rightPane.table)
-					window.focusArea = FOCUS_RIGHT_PANE
-				case 'S':
-					window.openShell()
 				}
 
 			}
@@ -80,14 +70,4 @@ func (window *mainWindow) Run() {
 	if err := window.app.Run(); err != nil {
 		panic(err)
 	}
-}
-
-func (window *mainWindow) openShell() {
-	window.app.Suspend(func() {
-		if window.focusArea == FOCUS_LEFT_PANE {
-			window.leftPane.OpenShell()
-		} else {
-			window.rightPane.OpenShell()
-		}
-	})
 }
